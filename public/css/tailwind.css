@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.btnFunciones {
+    margin: 0 5px;
+}
+
+.btnFunciones:hover {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.btnFunciones:active {
+    color: rgba(0, 0, 0, 1);
+}
