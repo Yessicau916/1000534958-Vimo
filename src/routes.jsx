@@ -12,9 +12,10 @@ import {
   MapPinIcon ,
   GlobeAsiaAustraliaIcon ,
   QueueListIcon  ,
+  UsersIcon,
   
 } from "@heroicons/react/24/solid";
-import { Home, Departamentos, Categorias,Proveedores,Usuarios,Compras,Pedidos,Productos,Roles,Ciudades} from "@/pages/dashboard";
+import { Home,Ventas,Abonos,DetalleVenta ,Departamentos,Cliente,Compras, Tallas,Categorias,Proveedores,Usuarios,Pedidos,Productos,Roles,Ciudades, DetalleCompra, Empleados} from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 
 const icon = {
@@ -39,7 +40,105 @@ export const routes = [
         path: "/usuarios",
         element: <Usuarios />,
       },
+      {
+        icon: <UsersIcon {...icon} />,
+        name: "Empleados",
+        path: "/empleados",
+        element: <Empleados />,
+      },
       
+    ],
+  },
+ 
+  {
+    title:"Compras",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <Squares2X2Icon {...icon} />,
+        name: "Categorias",
+        path: "/categorias",
+        element: <Categorias/>,
+      },
+      {
+        icon: <CubeIcon {...icon} />,
+        name: "Productos",
+        path: "/productos",
+        element: <Productos/>,
+      },
+      {
+        icon: <QueueListIcon   {...icon} />,
+        name: "Tallas",
+        path: "/talla",
+        element: <Tallas/>,
+      },
+      {
+        icon: <UserGroupIcon {...icon} />,
+        name: "Proveedores",
+        path: "/proveedores",
+        element: <Proveedores />,
+      },
+      {
+        icon: <UsersIcon {...icon} />,
+        name: "Clientes",
+        path: "/clientes",
+        element: <Cliente/>,
+      },
+      {
+        icon: <ShoppingBagIcon {...icon} />,
+        name: "Compras",
+        path: "/compras",
+        element: <Compras />,
+      },
+      {
+        icon: <ShoppingBagIcon {...icon} />,
+        name: "DetalleCompra",
+        path: "/detalleCompra",
+        element: <DetalleCompra />,
+      },
+    ],
+  },
+  {
+    title: "Ventas",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <ShoppingCartIcon {...icon} />,
+        name: "Pedidos",
+        path: "/pedidos",
+        element: <Pedidos />,
+      },
+      {
+        icon: <CurrencyDollarIcon {...icon} />,
+        name: "Ventas",
+        path: "/ventas",
+        element: <Ventas />,
+      },
+      {
+        icon: <CurrencyDollarIcon {...icon} />,
+        name: " detallle Ventas",
+        path: "/detalleVenta",
+        element: <DetalleVenta />,
+      },
+      {
+        icon: <BanknotesIcon  {...icon} />,
+        name: "Abonos",
+        path: "/abonos",
+        element: <Abonos />,
+      },
+    ],
+  },
+
+  {
+    title: "Desempeño",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <ChartBarIcon {...icon} />,
+        name: "dashboard",
+        path: "/home",
+        element: <Home />,
+      },
     ],
   },
   {
@@ -62,80 +161,6 @@ export const routes = [
     ],
   },
   {
-    title:"Compras",
-    layout: "dashboard",
-    pages: [
-      {
-        icon: <Squares2X2Icon {...icon} />,
-        name: "Categorias",
-        path: "/categorias",
-        element: <Categorias/>,
-      },
-      {
-        icon: <CubeIcon {...icon} />,
-        name: "Productos",
-        path: "/productos",
-        element: <Productos/>,
-      },
-      {
-        icon: <QueueListIcon   {...icon} />,
-        name: "Tallas",
-        path: "/home",
-        element: <Home/>,
-      },
-      {
-        icon: <UserGroupIcon {...icon} />,
-        name: "Proveedores",
-        path: "/proveedores",
-        element: <Proveedores />,
-      },
-      {
-        icon: <ShoppingBagIcon {...icon} />,
-        name: "Compras",
-        path: "/compras",
-        element: <Compras />,
-      },
-    ],
-  },
-  {
-    title: "Ventas",
-    layout: "dashboard",
-    pages: [
-      {
-        icon: <ShoppingCartIcon {...icon} />,
-        name: "Pedidos",
-        path: "/pedidos",
-        element: <Pedidos />,
-      },
-      {
-        icon: <CurrencyDollarIcon {...icon} />,
-        name: "Ventas",
-        path: "/usuarios",
-        element: <Usuarios />,
-      },
-      {
-        icon: <BanknotesIcon  {...icon} />,
-        name: "Abonos",
-        path: "/usuarios",
-        element: <Usuarios />,
-      },
-    ],
-  },
-
-  {
-    title: "Desempeño",
-    layout: "dashboard",
-    pages: [
-      {
-        icon: <ChartBarIcon {...icon} />,
-        name: "dashboard",
-        path: "/home",
-        element: <Home />,
-      },
-    ],
-  },
-
-  {
     title: "login",
     layout: "auth",
     pages: [
@@ -144,6 +169,19 @@ export const routes = [
         name: "Salir",
         path: "/sign-in",
         element: <SignIn />,
+      },
+    ],
+  },
+
+  {
+    title: "home",
+    layout: "Tienda",
+    pages: [
+      {
+        icon: <ChartBarIcon {...icon} />,
+        name: "Home",
+        path: "/home",
+        element: <Home />,
       },
     ],
   },

@@ -83,30 +83,29 @@ export function Ciudades() {
   }, []);
 
   // Método para guardar o actualizar una ciudad
-  const saveCiudad = () => {
-    // Validación del nombre de la ciudad
-    if (!nombreCiudad || !idDepartamento) {
-      showAlert("error", "Ingrese un nombre para la ciudad y seleccione un departamento.");
-      return;
-    }
+  const postCiudades = () => {
 
-    // Determinar si es una operación de creación o actualización
-    const method = edit ? Axios.put : Axios.post;
-    const url = edit ? `${URLCiudades}/${id}` : URLCiudades;
-
-    // Realizar la solicitud a la API
-    method(url, { NombreCiudad: nombreCiudad, IdDepartamento: idDepartamento })
-      .then(() => {
-        showAlert("success", `Ciudad ${edit ? 'actualizada' : 'registrada'} con éxito.`);
-        getCiudades();
+    // Se establecen los errores como verdaderos inicialmente
+    setErrorNombreCiudad(true);
+    
+    // Validación de los campos
+    if (!nombreDepartamento) {
+      showAlert("error", "Ingrese un nombre de la ciudad!");
+      setErrorNombreCiudad(false);
+    
+    } else {
+      showAlert("success", "departamento registrado con éxito!");
+      
+      Axios.post(URLDepartamentos, {
+        NombreDepartamento: nombreDepartamento, 
+      }).then(()=>{
+        getDepartamentos();
         empty();
-        setEdit(false);
+      }).catch((error) => {
+        console.log(error)
       })
-      .catch((error) => {
-        console.log("Error al guardar la ciudad: ", error);
-      });
+    }
   };
-
   // Método para eliminar una ciudad
   const deleteCiudad = (idCiudad) => {
     Swal.fire({
@@ -185,7 +184,7 @@ export function Ciudades() {
                 <button onClick={volver} className="bg-teal-400 hover:bg-teal-800 text-white font-bold py-2 px-4 me-9 rounded">
                   Volver
                 </button>
-                <button onClick={saveCiudad} className="bg-orange-500 hover:bg-orange-800 text-white font-bold py-2 px-4 rounded">
+                <button onClick={edit} className="bg-orange-500 hover:bg-orange-800 text-white font-bold py-2 px-4 rounded">
                   Editar Ciudad
                 </button>
               </div>

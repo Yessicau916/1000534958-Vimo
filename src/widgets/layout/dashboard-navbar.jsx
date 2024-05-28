@@ -28,15 +28,21 @@ import {
   setOpenSidenav,
 } from "@/context";
 
+import { useNavigate } from 'react-router-dom';
+
 export function DashboardNavbar() {
   const [controller, dispatch] = useMaterialTailwindController();
   const { fixedNavbar, openSidenav } = controller;
   const { pathname } = useLocation();
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
 
+  const handleClick = () => {
+    navigate('/pages/Tienda/home'); // Cambia esta ruta según la estructura de tu proyecto
+  };
+
   return (
     <Navbar
-      color={fixedNavbar ? "white" : "transparent"}
+      color={fixedNavbar ? "indigo" : "white"}
       className={`rounded-xl transition-all ${
         fixedNavbar
           ? "sticky top-4 z-40 py-3 shadow-md shadow-blue-gray-500/5"
@@ -47,7 +53,7 @@ export function DashboardNavbar() {
     >
       <div className="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-center">
         <div className="capitalize">
-          <Breadcrumbs
+          {/* <Breadcrumbs
             className={`bg-transparent p-0 transition-all ${
               fixedNavbar ? "mt-1" : ""
             }`}
@@ -68,15 +74,13 @@ export function DashboardNavbar() {
             >
               {page}
             </Typography>
-          </Breadcrumbs>
-          <Typography variant="h6" color="blue-gray">
+          </Breadcrumbs> */}
+          {/* <Typography variant="h6" color="blue-gray">
             {page}
-          </Typography>
+          </Typography> */}
         </div>
         <div className="flex items-center">
-          <div className="mr-auto md:mr-4 md:w-56">
-            <Input label="Buscar" />
-          </div>
+        
           <IconButton
             variant="text"
             color="blue-gray"
@@ -100,22 +104,22 @@ export function DashboardNavbar() {
             <MenuList className="w-max border-0">
               <MenuItem className="flex items-center gap-3">
                 
-                <div>
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="mb-1 font-normal"
-                  >
-                    <strong>Tienda</strong> 
-                  </Typography>
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="flex items-center gap-1 text-xs font-normal opacity-60"
-                  >
-                    <ShoppingBagIcon className="h-3.5 w-3.5" /> Sitio web
-                  </Typography>
-                </div>
+              <div onClick={handleClick} style={{cursor: 'pointer'}}>
+      <Typography
+        variant="small"
+        color="blue-gray"
+        className="mb-1 font-normal"
+      >
+        <strong>Tienda</strong> 
+      </Typography>
+      <Typography
+        variant="small"
+        color="blue-gray"
+        className="flex items-center gap-1 text-xs font-normal opacity-60"
+      >
+        <ShoppingBagIcon className="h-3.5 w-3.5" /> Sitio web
+      </Typography>
+    </div>
               </MenuItem>
               <MenuItem className="flex items-center gap-4">
                 <div>

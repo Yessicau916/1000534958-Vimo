@@ -1,14 +1,15 @@
 import React, { Fragment, useState, useEffect } from "react";
-import {Typography, Card, CardHeader, CardBody, Input,Button} from "@material-tailwind/react";
+import { Typography, Card, CardHeader, CardBody, Input, Button } from "@material-tailwind/react";
 import Axios from "axios";
 import { Dialog, Transition } from '@headlessui/react';
 import Swal from 'sweetalert2';
 //iconos
 import {
-  PencilSquareIcon,TrashIcon,EyeIcon,UserPlusIcon,} from "@heroicons/react/24/solid";
-import { EyeSlashIcon,ChevronLeftIcon,ChevronRightIcon} from "@heroicons/react/24/outline";
+  PencilSquareIcon, TrashIcon, EyeIcon, UserPlusIcon,
+} from "@heroicons/react/24/solid";
+import { EyeSlashIcon,ChevronRightIcon,ChevronLeftIcon } from "@heroicons/react/24/outline";
 
-export function Usuarios() {
+export function Cliente() {
   //funcion para las alertas
   function showAlert(icon = "success", title) {
     const Toast = Swal.mixin({
@@ -33,9 +34,9 @@ export function Usuarios() {
   const [ciudadesList, setCiudadesList] = useState([]);
   const [open, setOpen] = useState(false);
 
-   // Estado para controlar el modal de visualización
-   const [openVisualizar, setOpenVisualizar] = useState(false);
-   const [visualizarUsuario, setVisualizarUsuario] = useState(null); // Estado para almacenar la información del usuario a visualizar
+  // Estado para controlar el modal de visualización
+  const [openVisualizar, setOpenVisualizar] = useState(false);
+  const [visualizarUsuario, setVisualizarUsuario] = useState(null); // Estado para almacenar la información del usuario a visualizar
 
   //se crean variables en las que se guardan los datos de los input
   const [rol, setRol] = useState("");
@@ -59,10 +60,10 @@ export function Usuarios() {
     empty();
     setEdit(false);
   }
-   //Variables para el modal
-   const [show, setShow] = useState(false);
-   const handleClose = () => setShow(false);
-   const handleShow = () => setShow(true);
+  //Variables para el modal
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
 
   //apis
   const URLUsuarios = "http://localhost:8080/api/usuarios";
@@ -153,10 +154,7 @@ export function Usuarios() {
     setErrorPass(true);
     setErrorConfirmPass(true);
     // Validación de los campos
-    if (rol == 0) {
-      showAlert("error", "Seleccione un rol primero!");
-      setErrorRol(false);
-    } else if (!cedula) {
+  if (!cedula) {
       showAlert("error", "Ingrese una cédula!");
       setErrorCedula(false);
     } else if (!valCed.test(cedula)) {
@@ -224,7 +222,7 @@ export function Usuarios() {
     } else {
       showAlert("success", "Usuario registrado con éxito!");
       Axios.post(URLUsuarios, {
-        IdRol: rol,
+        IdRol: 3,
         Cedula: parseInt(cedula),
         Estado: estado,
         Usuario: usuario,
@@ -239,7 +237,6 @@ export function Usuarios() {
         PoliticasPrivacidad: true
       }).then(() => {
         getUsuarios();
-        setOpen(false);
         setEdit(false)
         empty();
       }).catch((error) => {
@@ -247,8 +244,8 @@ export function Usuarios() {
       })
     }
   };
- 
-  
+
+
   //put//llamar las variables 
   const editar = (val) => {
     setOpen(true);
@@ -301,10 +298,7 @@ export function Usuarios() {
     setErrorConfirmPass(true);
 
     // Validación de los campos
-    if (rol == 0) {
-      showAlert("error", "Seleccione un rol primero!");
-      setErrorRol(false);
-    } else if (!cedula) {
+    if (!cedula) {
       showAlert("error", "Ingrese una cédula!");
       setErrorCedula(false);
     } else if (!valCed.test(cedula)) {
@@ -371,7 +365,7 @@ export function Usuarios() {
       Axios.put(URLUsuarios, {
         IdUsuario: id,
         Estado: estado,
-        IdRol: rol,
+        IdRol: 3,
         Cedula: cedula,
         Usuario: usuario,
         Nombre: nombre,
@@ -469,28 +463,28 @@ export function Usuarios() {
       TerminosCondiciones: true,
       PoliticasPrivacidad: true
     }).then(() => {
-    showAlert("success", "Estado modificado.");
-    getUsuarios();
-    setOpen(false);
-  }).catch((error) => {
-    console.log(error);
-    showAlert("error", "Error al modificar el estado.");
+      showAlert("success", "Estado modificado.");
+      getUsuarios();
+      setOpen(false);
+    }).catch((error) => {
+      console.log(error);
+      showAlert("error", "Error al modificar el estado.");
+    });
+  }
+  // Estado para el término de búsqueda
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Función para manejar la búsqueda
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  // Filtrar usuarios según el término de búsqueda
+  const filteredUsuarios = usuariosList.filter((user) => {
+  return user.IdRol === 3 && Object.values(user).some((value) =>
+      value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    );
   });
-}
-// Estado para el término de búsqueda
-const [searchTerm, setSearchTerm] = useState("");
-
-// Función para manejar la búsqueda
-const handleSearch = (event) => {
-  setSearchTerm(event.target.value);
-};
-
-// Filtrar usuarios según el término de búsqueda
-const filteredCategorias = usuariosList.filter((user) => {
-  return Object.values(user).some((value) =>
-    value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-  );
-});
 
   const [ver, setVer] = useState(true);
   const toggleVer = () => {
@@ -528,21 +522,18 @@ const filteredCategorias = usuariosList.filter((user) => {
     setPass(vis.Contrasenha)
     console.log(user)
   };
- 
-  // El estado para controlar la visibilidad de los Card
-  const [mostrarCrearCard, setMostrarCrearCard] = useState(true);
-
+  
   // Estados para el paginado
   const [currentPage, setCurrentPage] = useState(1);
-  const [categoriasPerPage] = useState(3); // Número de categorías por página
+  const [usuariosPerPage] = useState(3); // Número de categorías por página
 
   // Función para manejar el cambio de página
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   // Calcula las categorías para la página actual
-  const indexOfLastCategoria = currentPage * categoriasPerPage;
-  const indexOfFirstCategoria = indexOfLastCategoria - categoriasPerPage;
-  const currentCategorias = filteredCategorias.slice(indexOfFirstCategoria, indexOfLastCategoria);
+  const indexOfLastUsuario = currentPage * usuariosPerPage;
+  const indexOfFirstUsuario = indexOfLastUsuario - usuariosPerPage;
+  const currentUsuarios = filteredUsuarios.slice(indexOfFirstUsuario, indexOfLastUsuario);
 
 
   return (
@@ -575,42 +566,11 @@ const filteredCategorias = usuariosList.filter((user) => {
                   <Card className="">
                     <CardHeader variant="gradient" className="mb-4 p-6 gradiente-lila-rosado">
                       <Typography variant="h6" color="white">
-                        {edit ? ("Editar Usuario") : ("Crear usuario")}
+                        {edit ? ("Editar Cliente") : ("Crear Cliente")}
                       </Typography>
                     </CardHeader>
                     <CardBody className="px-2 pt-0 pb-2">
                       <div className="grid grid-cols-2 gap-4">
-                        {edit ? (
-                          <div className="col-span-">
-                            <select
-                              label="Rol"
-                              value={rol}
-                              disabled
-                              className="block w-full h-10 border border-indigo-400 text-indigo-600 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-indigo-500 text-sm">
-                              <option value={0}>Seleccione un rol</option>
-                                {rolesList.map((rol) => (
-                                  <option key={rol.IdRol} value={rol.IdRol}>
-                                    {rol.NombreDelRol}
-                              </option>
-                              ))}
-                            </select>
-                          </div>
-                        ) : (
-                          <div className="col-span-">
-                            <select
-                              label="Rol"
-                              value={rol}
-                              onChange={(event) => setRol(event.target.value)}
-                              className="block w-full h-10 border border-indigo-400 text-indigo-600 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500 text-sm">
-                              <option value={0}>Seleccione un rol</option>
-                                {rolesList.map((rol) => (
-                                <option key={rol.IdRol} value={rol.IdRol}>
-                                  {rol.NombreDelRol}
-                              </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
                         <div className="col-span-1">
                           <Input
                             label="Cédula"
@@ -664,8 +624,6 @@ const filteredCategorias = usuariosList.filter((user) => {
                             ))}
                           </select>
                         </div>
-                      </div>
-                        <div className="grid grid-cols-2 gap-3 mt-3">
                         <div className="col-span-1">
                           <Input
                             label="Correo"
@@ -673,6 +631,8 @@ const filteredCategorias = usuariosList.filter((user) => {
                             onChange={(event) => setCorreo(event.target.value)}
                             type="email" />
                         </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 mt-3">
                         <div className="col-span-1 flex items-center relative left-4">
                           <Input
                             label="Contraseña"
@@ -689,25 +649,27 @@ const filteredCategorias = usuariosList.filter((user) => {
                             onChange={(event) => setVeriPass(event.target.value)}
                             type={ver ? "password" : "text"} />
                         </div>
-                        </div>
-                        <div className="flex justify-end items-center mt-2">
+                      </div>
+                      <div className="flex justify-end items-center mt-2">
                         {edit ? (
                           <div>
                             {/* <button onClick={volver} className="bg-red-400 hover:bg-red-800 text-white font-bold py-2 px-4 me-1 rounded">
                               Volver
                             </button> */}
                             <button onClick={putUsuario} className="btnAgg text-white font-bold py-1 px-3 rounded">
-                              Editar usuario
+                              Editar cliente
                             </button>
                           </div>
                         ) : (
                           <button onClick={postUsuario} className="btnAgg text-white font-bold py-1 px-3 rounded ">
-                            Crear usuario
+                            Crear cliente
                           </button>
                         )}
-                        <button onClick={(e) => {setOpen(false);
-                            empty();}} className="bg-red-600 hover:bg-red-800 text-white font-bold py-1 px-3 rounded ms-1">
-                            Cancelar
+                        <button onClick={(e) => {
+                          setOpen(false);
+                          empty();
+                        }} className="bg-red-600 hover:bg-red-800 text-white font-bold py-1 px-3 rounded ms-1">
+                          Cancelar
                         </button>
                       </div>
                     </CardBody>
@@ -747,7 +709,7 @@ const filteredCategorias = usuariosList.filter((user) => {
                   <Card className="">
                     <CardHeader variant="gradient" className=" p-6 gradiente-lila-rosado">
                       <Typography variant="h6" color="white">
-                        Visualizar
+                        Visualizar Cliente
                       </Typography>
                     </CardHeader>
                     <CardBody className="px-4 pt-0 pb-2">
@@ -827,23 +789,23 @@ const filteredCategorias = usuariosList.filter((user) => {
         </div>
         <div className=" md:mt-0 md:ml-4 col-span-1 mr-auto">
           <Button className=" btnAgg px-3 py-2 flex items-center border" onClick={() => { setOpen(true), setEdit(false); }}>
-            <UserPlusIcon className="h-6 w-6 me-2" />Crear Usuario
+            <UserPlusIcon className="h-6 w-6 me-2" />Crear Cliente
           </Button>
         </div>
       </div>
 
       <Card>
-        
+
         <CardHeader variant="gradient" className="mb-8 p-6 gradiente-lila-rosado">
           <Typography variant="h6" color="white" className="flex justify-between items-center">
-            Usuarios 
+            Clientes
           </Typography>
         </CardHeader>
         <CardBody className="overflow-x-auto pt-0 pb-5">
-        <table className="w-full min-w-[620px] table-auto">
+          <table className="w-full min-w-[620px] table-auto">
             <thead>
               <tr>
-                {[ "Rol", "Cedula", "Nombre", "Apellido",, "Correo","Estado", "Funciones"].map((el) => (
+                {["Cedula", "Nombre", "Apellido", , "Correo", "Estado", "Funciones"].map((el) => (
                   <th
                     key={el}
                     className="border-b border-blue-indigo-50 py-3 px-5 text-left"
@@ -859,18 +821,17 @@ const filteredCategorias = usuariosList.filter((user) => {
               </tr>
             </thead>
             <tbody>
-              {currentCategorias.map((user) => (
+              {filteredUsuarios.map((user) => (
                 <tr key={user.IdUsuario}>
-                  <td className="border-b border-blue-gray-50 py-3 px-5">{rolesList.map((rol) => (rol.IdRol == user.IdRol && rol.NombreDelRol))}</td>
                   <td className="border-b border-blue-gray-50 py-3 px-5">{user.Cedula}</td>
                   <td className="border-b border-blue-gray-50 py-3 px-5">{user.Nombre}</td>
                   <td className="border-b border-blue-gray-50 py-3 px-5">{user.Apellidos}</td>
                   <td className="border-b border-blue-gray-50 py-3 px-5">{user.Correo}</td>
                   <td className="border-b border-blue-gray-50 py-3 px-5">
                     {user.Estado ? (
-                      <button onClick={() => {confirmarEstado(user.IdUsuario)}} className="bg-green-400 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full">Activo</button>
+                      <button onClick={() => { confirmarEstado(user.IdUsuario) }} className="bg-green-400 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full">Activo</button>
                     ) : (
-                      <button onClick={() => {confirmarEstado(user.IdUsuario)}} className="bg-pink-300 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-full">Inactivo</button>
+                      <button onClick={() => { confirmarEstado(user.IdUsuario) }} className="bg-pink-300 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-full">Inactivo</button>
                     )}
                   </td>
                   <td className="border-b border-blue-gray-50 py-0 px-1">
@@ -882,21 +843,21 @@ const filteredCategorias = usuariosList.filter((user) => {
               ))}
             </tbody>
           </table>
-       {/* Paginación */}
+         {/* Paginación */}
        <ul className="flex justify-center mt-4">
             {currentPage > 1 ? <button onClick={() =>
               currentPage > 1 ? paginate(currentPage - 1) : paginate(currentPage)
             } className='text-gray-400 py-1 '>
               <ChevronLeftIcon className="w-6 h-6" />
             </button> : null}
-            {[...Array(Math.ceil(filteredCategorias.length / categoriasPerPage)).keys()].map((number) => (
+            {[...Array(Math.ceil(filteredUsuarios.length / usuariosPerPage)).keys()].map((number) => (
               <li key={number} className="cursor-pointer mx-1">
                 <button onClick={() => paginate(number + 1)} className={`rounded-3xl ${currentPage === number + 1 ? 'bg-indigo-300 text-white pagIconActive' : 'bg-gray-400 text-gray-800 pagIcon'}`}>
                 </button>
               </li>
             ))}
-            {currentPage < filteredCategorias.length / categoriasPerPage ? <button onClick={() =>
-              currentPage < filteredCategorias.length / categoriasPerPage ? paginate(currentPage + 1) : paginate(currentPage)
+            {currentPage < filteredUsuarios.length / usuariosPerPage ? <button onClick={() =>
+              currentPage < filteredUsuarios.length / usuariosPerPage ? paginate(currentPage + 1) : paginate(currentPage)
             } className='text-gray-400 py-1 '>
               <ChevronRightIcon className="w-6 h-6" />
             </button> : null}
@@ -906,4 +867,4 @@ const filteredCategorias = usuariosList.filter((user) => {
     </div>
   );
 }
-export default Usuarios;
+export default Cliente;

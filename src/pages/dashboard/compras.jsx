@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
 import {
-  Typography, Card, CardHeader, CardBody, Input,
+  Typography, Card, CardHeader, CardBody, Input, Button
 } from "@material-tailwind/react";
 import Axios from "axios";
 import Swal from 'sweetalert2';
 
 
-//iconos
-import {
-  PencilSquareIcon,
-  EyeIcon
-} from "@heroicons/react/24/solid";
+import { useNavigate, } from 'react-router-dom';
+
+import { PencilSquareIcon, EyeIcon, ShoppingBagIcon, ChevronRightIcon, ChevronLeftIcon } from "@heroicons/react/24/solid";
+
 
 export function Compras() {
+  const navigate = useNavigate();
   //funcion para las alertas
   function showAlert(icon = "success", title) {
     const Toast = Swal.mixin({
@@ -36,14 +36,43 @@ export function Compras() {
   const [comprasList, setComprasList] = useState([]);
   const [proveedoresList, setProveedoresList] = useState([]);
 
+
+
   //se crean variables en las que se guardan los datos de los input
   const [proveedor, setProveedor] = useState("");
   const [numeroFactura, setNumeroFactura] = useState("");
   const [fecha, setFecha] = useState("");
   const [valorTotal, setValorTotal] = useState("");
 
+  const [estado, setEstado] = useState(true);
+
   const [id, setId] = useState("");
   const [edit, setEdit] = useState(false);
+
+
+  // Estado para el término de búsqueda
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Filtrar compras según el término de búsqueda
+  const filteredCompras = comprasList.filter((user) => {
+    return Object.values(user).some((value) =>
+      value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  // Estados para el paginado
+  const [currentPage, setCurrentPage] = useState(1);
+  const [comprasPrePage] = useState(3); // Número de categorías por página
+
+  // Función para manejar el cambio de página
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Calcula las categorías para la página actual
+  const indexOfFirstCom = currentPage * comprasPrePage;
+  const indexOfFirstUsu = indexOfFirstCom - comprasPrePage;
+  const currentCompras = comprasList.slice(
+    indexOfFirstUsu,
+    indexOfFirstCom);
 
   //funcion volver
   const volver = () => {
@@ -87,184 +116,87 @@ export function Compras() {
     getProveedores();
   }, []);
 
-  const [errorProveedor, setErrorProveedor] = useState(true);
-  const [errorNumeroFactura, setErrorNumeroFactura] = useState(true);
-  const [errorFecha, setErrorFecha] = useState(true);
-  const [errorValorTotal, setErrorValorTotal] = useState(true);
-
-  //post
-  const postCompras = () => {
+  const putCompra = () => {
     // Se establecen los errores como verdaderos inicialmente
-    setErrorProveedor(true);
-    setErrorNumeroFactura(true);
-    setErrorFecha(true);
-    setErrorValorTotal(true);
-
-    // Validación de los campos
-    if (proveedor == 0) {
-      showAlert("error", "Seleccione un proveedor primero!");
-      setErrorProveedor(false);
-    } else if (!numeroFactura) {
-      showAlert("error", "Ingrese un Numero de la factura!");
-      setErrorNumeroFactura(false);
-    } else if (!fecha) {
-      showAlert("error", "Ingrese una fecha!");
-      setErrorFecha(false);
-    } else if (!valorTotal) {
-      showAlert("error", "Ingrese su nombreel valor total")
-
+    setErrorNombre(true);
+    if (!estado) {
+      setEstado(true);
     } else {
-      showAlert("success", "Compra registrado con éxito!");
-      Axios.post(URLCompras, {
-        IdProveedor: proveedor,
-        NumeroFactura: numeroFactura,
-        Fecha: fecha,
-        ValorTotal: valorTotal,
-      }).then(() => {
+      console.log("Datos a enviar:", { Estado: estado }); // Verifica los datos que se enviarán
+      Axios.put(URLCategorias, {
+        Estado: estado
+      }).then((response) => {
+        console.log("Respuesta de la API:", response.data); // Verifica la respuesta de la API
         getCompras();
-        setEdit(false);
         empty();
       }).catch((error) => {
-        console.log(error)
-      })
+        console.log(error);
+        showAlert("error", "Hubo un error al editar la el estado, inténtalo de nuevo");
+      });
     }
   };
-  //put
 
-  //llamar las variables 
-  const editar = (val) => {
-    setEdit(true)
-    setId(val.IdCompra)
-    setProveedor(val.IdProveedor)
-    setNumeroFactura(val.NumeroFactura)
-    setFecha(val.Fecha)
-    setValorTotal(val.ValorTotal)
+  const confirmarEstado = (id) => {
+    Swal.fire({
+      title: 'Cambiar Estado',
+      text: '¿Estás seguro de cambiar el estado de este categoría?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, cambiar estado!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        switchEstado(id);
+      }
+    });
+  };
+
+  const switchEstado = (id) => {
+
+    let est = comprasList.some((user) => (user.IdCompra === id && user.Estado))
+    if (est) {
+      est = false;
+    } else {
+      est = true;
+    }
+    const user = comprasList.find((user) => (user.IdCompra === id))
+    Axios.put(URLCompras, {
+      IdCompra: id,
+      Estado: est,
+      IdProveedor: user.IdProveedor,
+      NumeroFactura: user.NumeroFactura,
+      Fecha: user.Fecha,
+      ValorTotal: user.ValorTotal
+    }).then(() => {
+      showAlert("success", "Estado modificado.");
+      getCompras();
+    }).catch((error) => {
+      console.log(error);
+      showAlert("error", "Error al modificar el estado.");
+    });
   }
 
-  const putCompras = () => {
-    // Se establecen los errores como verdaderos inicialmente
-    setErrorProveedor(true);
-    setErrorNumeroFactura(true);
-    setErrorFecha(true);
-    setErrorValorTotal(true);
-    // Validación de los campos
-    if (proveedor == 0) {
-      showAlert("error", "Seleccione un proveedor primero!");
-      setErrorProveedor(false);
-    } else if (!numeroFactura) {
-      showAlert("error", "Ingrese un Numero de la factura!");
-      setErrorNumeroFactura(false);
-    } else if (!fecha) {
-      showAlert("error", "Ingrese una fecha!");
-      setErrorFecha(false);
-    } else if (!valorTotal) {
-      showAlert("error", "Ingrese su nombreel valor total")
-
-    } else {
-      showAlert("success", "Compra registrado con éxito!");
-
-      Axios.put(URLCompras, {
-        IdCompra: id,
-        IdProveedor: proveedor,
-        NumeroFactura: numeroFactura,
-        Fecha: fecha,
-        ValorTotal: valorTotal,
-      }).then(() => {
-        getCompras();
-        setEdit(false);
-        empty();
-      }).catch((error) => {
-        console.log(error)
-      })
-    }
-  };
-
-
-
-
-
   return (
+
     <div className="mt-12 mb-8 flex flex-col gap-12">
+      <div className="md:flex-row md:items-center md:justify-between grid grid-cols-5 ml-auto ">
+        <div className="md:flex md:items-center col-span-4">
+          <Input
+            label="Buscar"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className=" md:mt-0 md:ml-4 col-span-1 mr-auto">
+          <Button className="btnAgg px-3 py-2 flex items-center border" onClick={() => navigate('../detalleCompra')}><ShoppingBagIcon className="h-7 w-7 me-2" />Crear Compra</Button>
+        </div>
+      </div>
+
+
       <Card>
-        <CardHeader variant="gradient" color="gray" className="mb-8 p-6">
-          <Typography variant="h6" color="white">
-            {edit ? ("Editar compra") : ("Crear compra")}
-          </Typography>
-        </CardHeader>
-        <CardBody className="px-0 pt-0 pl-2 pr-2 pb-2">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-">
-              {edit ? (
-                <select
-                  disabled
-                  label="Proveedor"
-                  value={proveedor}
-                  className="text-sm block w-full h-10 border border-gray-400 text-gray-700 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
-                  <option value={0}>Seleccione un proveedor</option>
-                  {proveedoresList.map((proveedor) => (
-                    <option value={proveedor.IdProveedor}>
-                      {proveedor.Nombre}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <select
-                  label="Proveedor"
-                  value={proveedor}
-                  onChange={(event) => setProveedor(event.target.value)}
-                  className="text-sm block w-full h-10 border border-gray-400 text-gray-700 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
-                  <option value={0}>Seleccione un proveedor</option>
-                  {proveedoresList.map((proveedor) => (
-                    <option value={proveedor.IdProveedor}>
-                      {proveedor.Nombre}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-            <div className="col-span-1">
-              <Input
-                label="Numero Factura"
-                value={numeroFactura}
-                onChange={
-                  (event) => setNumeroFactura(event.target.value)
-                } />
-            </div>
-            <div className="col-span-1">
-              <Input
-                label="Fecha"
-                value={fecha}
-                type="date"
-                onChange={(event) => setFecha(event.target.value)} />
-            </div>
-            <div className="col-span-1">
-              <Input
-                label="Valor Total"
-                value={valorTotal}
-                onChange={(event) => setValorTotal(event.target.value)} />
-            </div>
-          </div>
-          <div className="flex justify-end items-center mt-2">
-            {edit ? (
-              <div>
-                <button onClick={volver} className="bg-red-400 hover:bg-red-800 text-white font-bold py-2 px-4 me-1 rounded">
-                  Volver
-                </button>
-                <button onClick={putCompras} className="bg-teal-400 hover:bg-teal-800 text-white font-bold py-2 px-4 rounded">
-                  Editar Compra
-                </button>
-              </div>
-            ) : (
-              <button onClick={postCompras} className="bg-teal-400 hover:bg-teal-800 text-white font-bold py-2 px-4 rounded">
-                Crear Compra
-              </button>
-            )}
-          </div>
-        </CardBody>
-      </Card>
-      <Card>
-        <CardHeader variant="gradient" color="gray" className="mb-8 p-6">
-          <Typography variant="h6" color="white">
+        <CardHeader variant="gradient" className="mb-8 p-6 gradiente-lila-rosado">
+          <Typography variant="h6" color="white" className="flex justify-between items-center">
             Compras
           </Typography>
         </CardHeader>
@@ -272,7 +204,7 @@ export function Compras() {
           <table className="w-full min-w-[640px] table-auto">
             <thead>
               <tr>
-                {["Proveedor", "Numero Factura", "Fecha", "Valor total", "Funciones"].map((el) => (
+                {["Proveedor", "Numero Factura", "Fecha", "Estado", "Valor total", "Funciones"].map((el) => (
                   <th
                     key={el}
                     className="border-b border-blue-gray-50 py-3 px-5 text-left"
@@ -288,20 +220,45 @@ export function Compras() {
               </tr>
             </thead>
             <tbody>
-              {comprasList.map((user) => (
+              {currentCompras.map((user) => (
                 <tr key={user.IdCompra}>
                   <td className="border-b border-blue-gray-50 py-3 px-5">{proveedoresList.map((proveedor) => (proveedor.IdProveedor == user.IdProveedor && proveedor.Nombre))}</td>
                   <td className="border-b border-blue-gray-50 py-3 px-5">{user.NumeroFactura}</td>
                   <td className="border-b border-blue-gray-50 py-3 px-5">{user.Fecha}</td>
+                  <td className="border-b border-blue-gray-50 py-3 px-5">
+                    {user.Estado ? (
+                      <button onClick={() => { confirmarEstado(user.IdCompra) }} className="bg-green-400 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full">Activo</button>
+                    ) : (
+                      <button onClick={() => { confirmarEstado(user.IdCompra) }} className="bg-pink-300 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-full">Inactivo</button>
+                    )}
+                  </td>
                   <td className="border-b border-blue-gray-50 py-3 px-5">{user.ValorTotal}</td>
                   <td className="border-b border-blue-gray-50 py-3 px-5">
-                    <button onClick={() => { editar(user) }} className="text-xs font-semibold text-blue-gray-600 btnFunciones h-6 w-6 text-gray-500"><PencilSquareIcon /></button>
-                    <button className="text-xs font-semibold text-blue-gray-600 btnFunciones h-6 w-6 text-gray-500"><EyeIcon /></button>
+                    <button className="text-xs font-semibold btnFunciones h-6 w-6 text-gray-500"><EyeIcon /></button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {/* Paginación */}
+          <ul className="flex justify-center mt-4">
+            {currentPage > 1 ? <button onClick={() =>
+              currentPage > 1 ? paginate(currentPage - 1) : paginate(currentPage)
+            } className='text-gray-400 py-1 '>
+              <ChevronLeftIcon className="w-6 h-6" />
+            </button> : null}
+            {[...Array(Math.ceil(filteredCompras.length / comprasPrePage)).keys()].map((number) => (
+              <li key={number} className="cursor-pointer mx-1">
+                <button onClick={() => paginate(number + 1)} className={`rounded-3xl ${currentPage === number + 1 ? 'bg-indigo-300 text-white pagIconActive' : 'bg-gray-400 text-gray-800 pagIcon'}`}>
+                </button>
+              </li>
+            ))}
+            {currentPage < filteredCompras.length / comprasPrePage ? <button onClick={() =>
+              currentPage < filteredCompras.length / comprasPrePage ? paginate(currentPage + 1) : paginate(currentPage)
+            } className='text-gray-400 py-1 '>
+              <ChevronRightIcon className="w-6 h-6" />
+            </button> : null}
+          </ul>
 
         </CardBody>
       </Card>

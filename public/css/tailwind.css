@@ -13,3 +13,36 @@
 .btnFunciones:active {
     color: rgba(0, 0, 0, 1);
 }
+:hover
+.slate-500 {
+    background-color: #6b7280; /* Color Slate 500 */
+}
+
+Input{
+    background-color: none !important;
+}
+
+.gradiente-lila-rosado {
+    background: linear-gradient(to right, #012e67,#4682b4,#012e67);
+}
+
+
+.btnAgg {
+    background-color:  #2a568f;
+}
+
+.btnAgg:hover {
+    background-color: #012e67   ;
+}
+
+.btnActvi{
+    background-color: rgb(138, 178, 138);
+}
+
+.pagIconActive {
+    padding: 6px !important;
+}
+
+.pagIcon {
+    padding: 4px !important;
+}
