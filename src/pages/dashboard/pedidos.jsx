@@ -4,10 +4,12 @@ import Axios from "axios";
 import { Dialog, Transition } from '@headlessui/react';
 import Swal from 'sweetalert2';
 //iconos
-import { PencilSquareIcon, TrashIcon, EyeIcon, ShoppingCartIcon, SquaresPlusIcon,CurrencyDollarIcon,  } from "@heroicons/react/24/solid";
-import { EyeSlashIcon, ChevronLeftIcon,ChevronRightIcon } from "@heroicons/react/24/outline";
-
+import { PencilSquareIcon, TrashIcon, EyeIcon, ShoppingCartIcon, SquaresPlusIcon, CurrencyDollarIcon, } from "@heroicons/react/24/solid";
+import { EyeSlashIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { useNavigate, } from 'react-router-dom';
 export function Pedidos() {
+
+  const navigate = useNavigate();
   //funcion para las alertas
   function showAlert(icon = "success", title) {
     const Toast = Swal.mixin({
@@ -51,9 +53,12 @@ export function Pedidos() {
   const [valorVenta, setValorVenta] = useState("");
   const [valorTotal, setValorTotal] = useState("");
 
+  const [totalAbonos, setTotalAbonos] = useState("");
+
   const [id, setId] = useState("");
   const [edit, setEdit] = useState(false);
 
+  const [showEstadoModal, setShowEstadoModal] = useState(false)
 
   //Variables para el modal
   const [show, setShow] = useState(false);
@@ -64,6 +69,7 @@ export function Pedidos() {
   const URLPedidos = "http://localhost:8080/api/ventapedido";
   const URLUsuario = "http://localhost:8080/api/usuarios";
   const URLProducto = "http://localhost:8080/api/productos";
+  const URLAbonos = "http://localhost:8080/api/abonos";
 
   //metodos o endpoints get
   const getPedidos = async () => {
@@ -74,7 +80,7 @@ export function Pedidos() {
       console.log("Error al obtener los datos: ", error);
     }
   };
-  
+
   const getUsuarios = async () => {
     try {
       const resp = await Axios.get(URLUsuario);
@@ -82,7 +88,7 @@ export function Pedidos() {
     } catch (error) {
       console.log("Error al obtener los datos: ", error);
     }
-    
+
   }
   const getProductos = async () => {
     try {
@@ -110,7 +116,7 @@ export function Pedidos() {
     getPedidos();
     getProductos();
     getUsuarios();
-    
+
   }, []);
 
   //alerta de confirmar estado
@@ -126,7 +132,7 @@ export function Pedidos() {
       confirmButtonText: 'Sí, cambiar estado!'
     }).then((result) => {
       if (result.isConfirmed) {
-        switchEstado(id,selectedEstadoPago);
+        switchEstado(id, selectedEstadoPago);
       }
     });
   };
@@ -135,25 +141,16 @@ export function Pedidos() {
   const switchEstado = (id) => {
     // Buscar la pedido con el ID proporcionado
     const user = ventasList.find((user) => user.IdVentaPedido === id);
-  
+
     // Verificar si se encontró la pedido
     if (user) {
       // Cambiar el estado
       let est = user.Estado ? false : true;
-  
+
       // Realizar la actualización del estado en el backend
       Axios.put(URLPedidos, {
         IdVentaPedido: id,
         Estado: est,
-        NumeroVentaPedido: user.NumeroVentaPedido,
-        Fecha: user.Fecha,
-        EstadoPago: user.EstadoPago,
-        IdUsuario: user.IdUsuario,
-        MontoAdeudado: user.MontoAdeudado,
-        IdProducto: user.IdProducto,
-        Cantidad: user.Cantidad,
-        ValorVenta: user.ValorVenta,
-        ValorTotal: user.ValorTotal,
       })
         .then(() => {
           showAlert("success", "Estado modificado.");
@@ -169,54 +166,114 @@ export function Pedidos() {
       showAlert("error", "Pedido no encontrada.");
     }
   };
-  
+
+  const [estadoPagado, setEstadoPagado] = useState(false);
 
   // Función para confirmar el cambio de estado de pago
-const confirmarCambioEstadoPago = (id, nuevoEstadoPago) => {
-  Swal.fire({
-    title: 'Cambiar Estado de Pago',
-    text: `¿Estás seguro de cambiar el estado de pago de esta pedido a "${nuevoEstadoPago}"?`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Sí, cambiar estado de pago'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      setNuevoEstadoPago(nuevoEstadoPago);
-      // Realizar el cambio de estado de pago
+  const confirmarCambioEstadoPago = (id, nuevoEstadoPago) => {
+    Swal.fire({
+      title: 'Cambiar Estado de Pago',
+      text: `¿Está seguro de cambiar el estado de pago de este pedido a "${nuevoEstadoPago}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, cambiar estado de pago'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setId(id);
+        if (nuevoEstadoPago === "Pagado") {
+          setEstadoPagado(true);
+          const pedido = ventasList.find(vl => vl.IdVentaPedido === id)?.MontoAdeudado;
+          setTotalAbonos(pedido);
+        }
+        setNuevoEstadoPago(nuevoEstadoPago);
+        // Realizar el cambio de estado de pago
+        setShowEstadoModal(true);
+      }
+    });
+  };
+  function crearAbono() {
+    const pedido = ventasList.find(vl => vl.IdVentaPedido === id);
+    if (totalAbonos <= 0) { return showAlert("error", "Valor no válido."); }
+    if (totalAbonos <= pedido.MontoAdeudado && nuevoEstadoPago === "Pagado") {
       cambiarEstadoPago(id, nuevoEstadoPago);
+      Axios.post(URLAbonos, {
+        IdVentaPedido: pedido.IdVentaPedido,
+        ValorAbonado: totalAbonos,
+        Fecha: pedido.Fecha,
+        IdUsuario: pedido.IdUsuario,
+        recibo: "reciboFile"
+      }).then(() => {
+        Swal.fire({
+          icon: "success",
+          title: "Estado de pago cambiado exitosamente",
+          text: `El abono de $${totalAbonos} se registró exitosamente`,
+          showConfirmButton: false,
+          timer: 6000
+        });
+        setTimeout(() => {
+          getPedidos();
+        }, 500);
+      })
+    } else if (totalAbonos < pedido.MontoAdeudado && nuevoEstadoPago === "Abonado") {
+      cambiarEstadoPago(id, nuevoEstadoPago);
+      Axios.post(URLAbonos, {
+        IdVentaPedido: pedido.IdVentaPedido,
+        ValorAbonado: totalAbonos,
+        Fecha: pedido.Fecha,
+        IdUsuario: pedido.IdUsuario,
+        recibo: "reciboFile"
+      }).then(() => {
+        Swal.fire({
+          icon: "success",
+          title: "Estado de pago cambiado exitosamente",
+          text: `El abono de $${totalAbonos} se registró exitosamente`,
+          showConfirmButton: false,
+          timer: 6000
+        });
+        setTimeout(() => {
+          getPedidos();
+        }, 500);
+      })
+    } else if (totalAbonos >= pedido.MontoAdeudado && nuevoEstadoPago === "Abonado") {
+      showAlert("error", "El abono debe ser menor a la deuda.");
+    } else {
+      showAlert("error", "El abono no puede ser mayor a la deuda.");
     }
-  });
-};
+    setEstadoPagado(false);
+    setShowEstadoModal(!showEstadoModal);
+  }
 
-// Función para cambiar el estado de pago
-const cambiarEstadoPago = (id, nuevoEstadoPago) => {
-  // Obtener la pedido con el ID correspondiente
-  const pedido = ventasList.find((pedido) => pedido.IdVentaPedido === id);
-  
- // Actualizar el estado de pago en el API y en la base de datos
- Axios.put(URLPedidos, { IdVentaPedido: id, EstadoPago: nuevoEstadoPago })
- .then(() => {
-   showAlert("success", "Estado de pago modificado exitosamente.");
-   // Actualizar el estado de pago en el estado local
-   setVentasList((prevVentas) => {
-     return prevVentas.map((v) => {
-       if (v.IdVentaPedido === id) {
-         return { ...v, EstadoPago: nuevoEstadoPago };
-       }
-       return v;
-     });
-   });
- })
- .catch((error) => {
-   console.log(error);
-   showAlert("error", "Error al modificar el estado de pago.");
- });
-};
+  // Función para cambiar el estado de pago
+  const cambiarEstadoPago = (id, nuevoEstadoPago) => {
+    const pedido = ventasList.find((pedido) => pedido.IdVentaPedido === id);
+    if (pedido) {
+      Axios.put(`${URLPedidos}/${pedido.IdVentaPedido}`, {
+        IdVentaPedido: id,
+        EstadoPago: nuevoEstadoPago
+      })
+        .then(() => {
+          showAlert("success", "Estado de pago modificado exitosamente.");
+          setTimeout(() => {
+            getPedidos();
+          }, 500);
+        })
+        .catch((error) => {
+          console.log(error);
+          showAlert("error", "Error al modificar el estado de pago.");
+        });
+    } else {
+      return showAlert("error", "Pedido no encontrado.");
+    }
+  };
 
-
-  
+  // Función para mostrar/ocultar el modal de abonos
+  const toggleAbonoModal = () => {
+    setEstadoPagado(false);
+    setTotalAbonos("")
+    setShowEstadoModal(!showEstadoModal);
+  };
 
   // Estado para el término de búsqueda
   const [searchTerm, setSearchTerm] = useState("");
@@ -226,11 +283,15 @@ const cambiarEstadoPago = (id, nuevoEstadoPago) => {
     setSearchTerm(event.target.value);
   };
 
-  // Filtrar pedidos según el término de búsqueda
-  const filteredVentas = ventasList.filter((user) => {
-    return Object.values(user).some((value) =>
-      value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const filteredVentas = ventasList.filter((venta) => {
+    return venta.EstadoPago === "Pendiente"
+  }).filter((venta) => {
+    const searchTermLowerCase = searchTerm.toLowerCase();
+
+    return Object.values(venta).some((value) => {
+      const textValue = typeof value === 'boolean' ? (value ? 'activo' : 'inactivo') : value.toString().toLowerCase();
+      return textValue.includes(searchTermLowerCase);
+    });
   });
 
   const [ver, setVer] = useState(true);
@@ -307,17 +368,17 @@ const cambiarEstadoPago = (id, nuevoEstadoPago) => {
                   <div className="grid grid-cols-2 gap-4">
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    <Input label="Id" value={id} readOnly />
-                    <Input label="Número de Pedido" value={numeroVenta} readOnly />
-                    <Input label="Estad de Pago" value={estadoPago} readOnly />
-                    <Input label="Cliente" value={usuario} readOnly />
-                    <Input label="Monto Adeudado" value={montoAdeudado} readOnly />
-                    <Input label="Producto" value={producto} readOnly />
-                    <Input label="Cantidad" value={cantidad} readOnly />
-                    <Input label="Valor de la pedido" value={valorVenta} readOnly />
-                    <Input label="Valor Total" value={valorTotal} readOnly />
-                  </div>
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      <Input label="Id" value={id} readOnly />
+                      <Input label="Número de Pedido" value={numeroVenta} readOnly />
+                      <Input label="Estad de Pago" value={estadoPago} readOnly />
+                      <Input label="Cliente" value={usuario} readOnly />
+                      <Input label="Monto Adeudado" value={montoAdeudado} readOnly />
+                      <Input label="Producto" value={producto} readOnly />
+                      <Input label="Cantidad" value={cantidad} readOnly />
+                      <Input label="Valor de la pedido" value={valorVenta} readOnly />
+                      <Input label="Valor Total" value={valorTotal} readOnly />
+                    </div>
                   </div>
                 </div>
                 <div className="px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
@@ -337,6 +398,79 @@ const cambiarEstadoPago = (id, nuevoEstadoPago) => {
         </Dialog>
       </Transition.Root>
 
+      {/* Modal de abonos */}
+      {showEstadoModal && (
+        <Transition.Root show={showEstadoModal} as={Fragment}>
+          <Dialog as="div" className="fixed inset-0 z-50 overflow-y-auto" onClose={toggleAbonoModal}>
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
+              >
+                <Dialog.Overlay className="fixed inset-0 transition-opacity bg-gray-800 bg-opacity-50" />
+              </Transition.Child>
+
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                  <div className="px-4 py-5 sm:px-6">
+                    <h3 className="text-lg font-medium leading-6 text-indigo-900">Crear Abono</h3>
+                    <p className="mt-1 max-w-2xl text-sm text-gray-500">Complete los detalles del abono</p>
+                  </div>
+                  <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2">
+                        <Input
+                          label="Valor Abonado"
+                          type="number"
+                          readOnly={estadoPagado}
+                          value={totalAbonos}
+                          onChange={(e) => setTotalAbonos(e.target.value)}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <Input
+                          label="Recibo"
+                          type="file"
+                          onChange={(e) => setReciboFile(e.target.files[0])} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button
+                      onClick={() => crearAbono()}
+                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-500 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    >
+                      Crear Abono
+                    </button>
+                    <button
+                      onClick={() => toggleAbonoModal()}
+                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              </Transition.Child>
+            </div>
+          </Dialog>
+        </Transition.Root>
+      )}
+
       <div className="md:flex-row md:items-center md:justify-between grid grid-cols-5 ml-auto ">
         <div className="md:flex md:items-center col-span-4">
           <Input
@@ -346,7 +480,7 @@ const cambiarEstadoPago = (id, nuevoEstadoPago) => {
           />
         </div>
         <div className=" md:mt-0 md:ml-4 col-span-1 mr-auto">
-          <Button className=" btnAgg px-3 py-2 flex items-center border" onClick={() => { setOpen(true), setEdit(false); }}>
+          <Button className=" btnAgg px-3 py-2 flex items-center border" onClick={() => navigate('../detallePedido')}>
             <ShoppingCartIcon className="h-6 w-6 me-2" /> Crear pedido
           </Button>
         </div>
@@ -362,7 +496,7 @@ const cambiarEstadoPago = (id, nuevoEstadoPago) => {
           <table className="w-full min-w-[620px] table-auto">
             <thead>
               <tr>
-                {["Numero Pedido", "Cliente","Monto Adeudado","Estado de Pago", "Estado","Valor Total","Funciones"].map((el) => (
+                {["Numero Pedido", "Cliente", "Estado de Pago", "Estado", "Monto Adeudado", "Valor Total", "Funciones"].map((el) => (
                   <th key={el} className="border-b border-blue-indigo-50 py-3 px-5 text-left">
                     <Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">
                       {el}
@@ -372,46 +506,45 @@ const cambiarEstadoPago = (id, nuevoEstadoPago) => {
               </tr>
             </thead>
             <tbody>
-            {currentVentas.map((user) => (
-  // Filtrar las pedidos según el estado de pago
-  user.EstadoPago === "Pendiente" && (
-    <tr key={user.IdVentaPedido}>
-      <td className="border-b border-blue-gray-50 py-3 px-5">{user.NumeroVentaPedido}</td>
-      <td className="border-b border-blue-gray-50 py-3 px-5">{user.IdUsuario}</td>
-      <td className="border-b border-blue-gray-50 py-3 px-5">{user.MontoAdeudado}</td>
-      <td className="border-b border-blue-gray-50 py-3 px-5">
-        <select
-          className={`bg-transparent border rounded-full px-4 py-2 text-white ${
-            user.EstadoPago === "Pendiente" ? "bg-pink-600 hover:bg-red-800" :
-            user.EstadoPago === "Pagado" ? "bg-green-700 hover:bg-green-800" :
-            user.EstadoPago === "Abonado" ? "bg-orange-700 hover:bg-orange-800" : ""
-          }`}
-          value={user.EstadoPago}
-          onChange={(e) => confirmarCambioEstadoPago(user.IdVentaPedido, e.target.value)}
-        >
-          <option value="Pendiente">Pendiente</option>
-          <option value="Pagado">Pagado</option>
-          <option value="Abonado">Abonado</option>
-        </select>
-      </td>
-      <td className="border-b border-blue-gray-50 py-3 px-5">
-        {user.Estado ? (
-          <button onClick={() => {confirmarEstado(user.IdVentaPedido)}} className="bg-green-600 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-full">Activo</button>
-        ) : (
-          <button onClick={() => {confirmarEstado(user.IdVentaPedido)}} className="bg-pink-400 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-full">Inactivo</button>
-        )}
-      </td>
-      <td className="border-b border-blue-gray-50 py-3 px-5">{user.ValorTotal}</td>
-      <td className="border-b border-blue-gray-50 py-0 px-1">
-        <button className="text-xs font-semibold text-blue-gray-600 btnFunciones h-4 w-5 text-gray-500" onClick={() => { visualizar(user) }}>
-          <EyeIcon />
-        </button>
-      </td>
-    </tr>
-  )
-))}
+              {currentVentas.map((user) => (
+                user.EstadoPago === "Pendiente" && (
+                  <tr key={user.IdVentaPedido}>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">{user.NumeroVentaPedido}</td>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">{user.IdUsuario}</td>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">
+                      <select
+                        className={`bg-transparent border rounded-full px-4 py-2 text-white ${user.EstadoPago === "Pendiente" ? "bg-[rgb(207,27,27)] hover:bg-red-700" :
+                          user.EstadoPago === "Pagado" ? "bg-green-700 hover:bg-green-800" :
+                            user.EstadoPago === "Abonado" ? "bg-orange-700 hover:bg-orange-800" : ""
+                          }`}
+                        value={user.EstadoPago}
+                        onChange={(e) => {
+                          confirmarCambioEstadoPago(user.IdVentaPedido, e.target.value);
+                        }} >
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Pagado">Pagado</option>
+                        <option value="Abonado">Abonado</option>
+                      </select>
+                    </td>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">
+                      {user.Estado ? (
+                        <button onClick={() => { confirmarEstado(user.IdVentaPedido) }} className="bg-green-600/80 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-full">Activo</button>
+                      ) : (
+                        <button onClick={() => { confirmarEstado(user.IdVentaPedido) }} className="bg-red-400/90 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-full">Inactivo</button>
+                      )}
+                    </td>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">{user.MontoAdeudado}</td>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">{user.Total}</td>
+                    <td className="border-b border-blue-gray-50 py-0 px-1">
+                      <button className="text-xs font-semibold btnFunciones h-4 w-5 text-gray-500" onClick={() => { visualizar(user) }}>
+                        <EyeIcon />
+                      </button>
+                    </td>
+                  </tr>
+                )
+              ))}
 
-    </tbody>
+            </tbody>
           </table>
           {/* Paginación */}
           <ul className="flex justify-center mt-4">

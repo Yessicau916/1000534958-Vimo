@@ -15,7 +15,7 @@ import {
   UsersIcon,
   
 } from "@heroicons/react/24/solid";
-import { Home,Ventas,Abonos,DetalleVenta ,Departamentos,Cliente,Compras, Tallas,Categorias,Proveedores,Usuarios,Pedidos,Productos,Roles,Ciudades, DetalleCompra, Empleados} from "@/pages/dashboard";
+import { Home,Ventas,Colores,Abonos,DetalleVenta,DetallePedido ,Departamentos,Cliente,Compras, Tallas,Categorias,Proveedores,Usuarios,Pedidos,Productos,Roles,Ciudades, DetalleCompra, Empleados} from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 
 const icon = {
@@ -65,6 +65,12 @@ export const routes = [
         name: "Productos",
         path: "/productos",
         element: <Productos/>,
+      },
+      {
+        icon: <CubeIcon {...icon} />,
+        name: "Colores",
+        path: "/colores",
+        element: <Colores/>,
       },
       {
         icon: <QueueListIcon   {...icon} />,
@@ -121,6 +127,12 @@ export const routes = [
         element: <DetalleVenta />,
       },
       {
+        icon: <CurrencyDollarIcon {...icon} />,
+        name: " detallle Pedido",
+        path: "/detallePedido",
+        element: <DetallePedido />,
+      },
+      {
         icon: <BanknotesIcon  {...icon} />,
         name: "Abonos",
         path: "/abonos",
@@ -141,6 +153,7 @@ export const routes = [
       },
     ],
   },
+
   {
     title: "Ubicación",
     layout: "dashboard",

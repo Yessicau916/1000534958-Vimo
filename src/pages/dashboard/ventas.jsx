@@ -6,8 +6,8 @@ import Swal from 'sweetalert2';
 
 import { useNavigate, } from 'react-router-dom';
 //iconos
-import { PencilSquareIcon, TrashIcon, EyeIcon, UserPlusIcon, SquaresPlusIcon,CurrencyDollarIcon,  } from "@heroicons/react/24/solid";
-import { EyeSlashIcon, ChevronLeftIcon,ChevronRightIcon } from "@heroicons/react/24/outline";
+import { PencilSquareIcon, TrashIcon, EyeIcon, UserPlusIcon, SquaresPlusIcon, CurrencyDollarIcon, } from "@heroicons/react/24/solid";
+import { EyeSlashIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 
 export function Ventas() {
   const navigate = useNavigate();
@@ -84,7 +84,6 @@ export function Ventas() {
     } catch (error) {
       console.log("Error al obtener los datos: ", error);
     }
-    
   }
   const getProductos = async () => {
     try {
@@ -112,7 +111,7 @@ export function Ventas() {
     getVentas();
     getProductos();
     getUsuarios();
-    
+
   }, []);
 
   //alerta de confirmar estado
@@ -128,7 +127,7 @@ export function Ventas() {
       confirmButtonText: 'Sí, cambiar estado!'
     }).then((result) => {
       if (result.isConfirmed) {
-        switchEstado(id,selectedEstadoPago);
+        switchEstado(id, selectedEstadoPago);
       }
     });
   };
@@ -137,25 +136,16 @@ export function Ventas() {
   const switchEstado = (id) => {
     // Buscar la venta con el ID proporcionado
     const user = ventasList.find((user) => user.IdVentaPedido === id);
-  
+
     // Verificar si se encontró la venta
     if (user) {
       // Cambiar el estado
       let est = user.Estado ? false : true;
-  
+
       // Realizar la actualización del estado en el backend
       Axios.put(URLVenta, {
         IdVentaPedido: id,
         Estado: est,
-        NumeroVentaPedido: user.NumeroVentaPedido,
-        Fecha: user.Fecha,
-        EstadoPago: user.EstadoPago,
-        IdUsuario: user.IdUsuario,
-        MontoAdeudado: user.MontoAdeudado,
-        IdProducto: user.IdProducto,
-        Cantidad: user.Cantidad,
-        ValorVenta: user.ValorVenta,
-        ValorTotal: user.ValorTotal,
       })
         .then(() => {
           showAlert("success", "Estado modificado.");
@@ -171,67 +161,56 @@ export function Ventas() {
       showAlert("error", "Venta no encontrada.");
     }
   };
-  
+
 
   // Función para confirmar el cambio de estado de pago
-const confirmarCambioEstadoPago = (id, nuevoEstadoPago) => {
-  Swal.fire({
-    title: 'Cambiar Estado de Pago',
-    text: `¿Estás seguro de cambiar el estado de pago de esta venta a "${nuevoEstadoPago}"?`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Sí, cambiar estado de pago'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      setNuevoEstadoPago(nuevoEstadoPago);
-      // Realizar el cambio de estado de pago
-      cambiarEstadoPago(id, nuevoEstadoPago);
-    }
-  });
-};
+  const confirmarCambioEstadoPago = (id, nuevoEstadoPago) => {
+    Swal.fire({
+      title: 'Cambiar Estado de Pago',
+      text: `¿Estás seguro de cambiar el estado de pago de esta venta a "${nuevoEstadoPago}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, cambiar estado de pago'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setNuevoEstadoPago(nuevoEstadoPago);
+        // Realizar el cambio de estado de pago
+        cambiarEstadoPago(id, nuevoEstadoPago);
+      }
+    });
+  };
 
-// Función para cambiar el estado de pago
-const cambiarEstadoPago = (id, nuevoEstadoPago) => {
-  // Obtener la venta con el ID correspondiente
-  const venta = ventasList.find((venta) => venta.IdVentaPedido === id);
-  
- // Actualizar el estado de pago en el API y en la base de datos
- Axios.put(URLVenta, { IdVentaPedido: id, EstadoPago: nuevoEstadoPago })
- .then(() => {
-   showAlert("success", "Estado de pago modificado exitosamente.");
-   // Actualizar el estado de pago en el estado local
-   setVentasList((prevVentas) => {
-     return prevVentas.map((v) => {
-       if (v.IdVentaPedido === id) {
-         return { ...v, EstadoPago: nuevoEstadoPago };
-       }
-       return v;
-     });
-   });
- })
- .catch((error) => {
-   console.log(error);
-   showAlert("error", "Error al modificar el estado de pago.");
- });
-};
+  // Función para cambiar el estado de pago
+  const cambiarEstadoPago = (id, nuevoEstadoPago) => {
+    // Obtener la venta con el ID correspondiente
+    const venta = ventasList.find((venta) => venta.IdVentaPedido === id);
+
+    // Actualizar el estado de pago en el API y en la base de datos
+    Axios.put(URLVenta, { IdVentaPedido: id, EstadoPago: nuevoEstadoPago })
+      .then(() => {
+        showAlert("success", "Estado de pago modificado exitosamente.");
+        // Actualizar el estado de pago en el estado local
+        setVentasList((prevVentas) => {
+          return prevVentas.map((v) => {
+            if (v.IdVentaPedido === id) {
+              return { ...v, EstadoPago: nuevoEstadoPago };
+            }
+            return v;
+          });
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        showAlert("error", "Error al modificar el estado de pago.");
+      });
+  };
 
 
   // Estado para el término de búsqueda
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Función para manejar la búsqueda
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
-  // Filtrar ventas según el término de búsqueda
-  const filteredVentas = ventasList.filter((user) => {
-    return Object.values(user).some((value) =>
-      value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
 
   const [ver, setVer] = useState(true);
   const toggleVer = () => {
@@ -257,18 +236,34 @@ const cambiarEstadoPago = (id, nuevoEstadoPago) => {
     setValorTotal(vis.ValorTotal);
   };
 
+  // Función para manejar la búsqueda
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const filteredVentas = ventasList.filter((venta) => {
+    return venta.EstadoPago === "Abonado" || venta.EstadoPago === "Pagado";
+  }).filter((venta) => {
+    const searchTermLowerCase = searchTerm.toLowerCase();
+
+    return Object.values(venta).some((value) => {
+      const textValue = typeof value === 'boolean' ? (value ? 'activo' : 'inactivo') : value.toString().toLowerCase();
+      return textValue.includes(searchTermLowerCase);
+    });
+  });
+
+
   // Estados para el paginado
   const [currentPage, setCurrentPage] = useState(1);
-  const [ventasPerPage] = useState(3); // Número de categorías por página
+  const [ventasPerPage] = useState(4); // Número de ventas por página
 
   // Función para manejar el cambio de página
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Calcula las categorías para la página actual
+  // Calcula las ventas para la página actual
   const indexOfLastVentas = currentPage * ventasPerPage;
   const indexOfFirstVentas = indexOfLastVentas - ventasPerPage;
   const currentVentas = filteredVentas.slice(indexOfFirstVentas, indexOfLastVentas);
-
   return (
     <div className="mt-12 mb-8 flex flex-col gap-12">
       {/* //visualizaicion */}
@@ -307,17 +302,17 @@ const cambiarEstadoPago = (id, nuevoEstadoPago) => {
                   <div className="grid grid-cols-2 gap-4">
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    <Input label="Id" value={id} readOnly />
-                    <Input label="Número de Venta" value={numeroVenta} readOnly />
-                    <Input label="Estad de Pago" value={estadoPago} readOnly />
-                    <Input label="Cliente" value={usuario} readOnly />
-                    <Input label="Monto Adeudado" value={montoAdeudado} readOnly />
-                    <Input label="Producto" value={producto} readOnly />
-                    <Input label="Cantidad" value={cantidad} readOnly />
-                    <Input label="Valor de la venta" value={valorVenta} readOnly />
-                    <Input label="Valor Total" value={valorTotal} readOnly />
-                  </div>
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      <Input label="Id" value={id} readOnly />
+                      <Input label="Número de Venta" value={numeroVenta} readOnly />
+                      <Input label="Estad de Pago" value={estadoPago} readOnly />
+                      <Input label="Cliente" value={usuario} readOnly />
+                      <Input label="Monto Adeudado" value={montoAdeudado} readOnly />
+                      <Input label="Producto" value={producto} readOnly />
+                      <Input label="Cantidad" value={cantidad} readOnly />
+                      <Input label="Valor de la venta" value={valorVenta} readOnly />
+                      <Input label="Valor Total" value={valorTotal} readOnly />
+                    </div>
                   </div>
                 </div>
                 <div className="px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
@@ -336,17 +331,16 @@ const cambiarEstadoPago = (id, nuevoEstadoPago) => {
           </div>
         </Dialog>
       </Transition.Root>
-
       <div className="md:flex-row md:items-center md:justify-between grid grid-cols-5 ml-auto ">
         <div className="md:flex md:items-center col-span-4">
           <Input
             label="Buscar"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearch}
           />
         </div>
         <div className=" md:mt-0 md:ml-4 col-span-1 mr-auto">
-        <Button className="btnAgg px-3 py-2 flex items-center border" onClick={() => navigate('../detalleVenta')}><CurrencyDollarIcon className="h-7 w-7 me-2" />Crear Compra</Button>
+          <Button className="btnAgg px-3 py-2 flex items-center border" onClick={() => navigate('../detalleVenta')}><CurrencyDollarIcon className="h-7 w-7 me-2" />Crear Compra</Button>
         </div>
       </div>
 
@@ -360,7 +354,7 @@ const cambiarEstadoPago = (id, nuevoEstadoPago) => {
           <table className="w-full min-w-[620px] table-auto">
             <thead>
               <tr>
-                {["Numero Venta", "Cliente","Monto Adeudado","Estado de Pago", "Estado","Valor Total","Funciones"].map((el) => (
+                {["Numero Venta", "Cliente", "Monto Adeudado", "Estado de Pago", "Estado", "Valor Total", "Funciones"].map((el) => (
                   <th key={el} className="border-b border-blue-indigo-50 py-3 px-5 text-left">
                     <Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">
                       {el}
@@ -370,64 +364,63 @@ const cambiarEstadoPago = (id, nuevoEstadoPago) => {
               </tr>
             </thead>
             <tbody>
-  {currentVentas
-    .filter((user) => user.EstadoPago !== "Pendiente")
-    .map((user) => (
-      <tr key={user.IdVentaPedido}>
-        <td className="border-b border-blue-gray-50 py-3 px-5">{user.NumeroVentaPedido}</td>
-        <td className="border-b border-blue-gray-50 py-3 px-5">
-                    {usuariosList && usuariosList.map((usuario) => (
-                      usuario.IdUsuario == user.IdUsuario && usuario.Nombre // Aquí accedemos correctamente al nombre del usuario
-                    ))}
-                  </td>
-        <td className="border-b border-blue-gray-50 py-3 px-5">{user.MontoAdeudado}</td>
-        <td className="border-b border-blue-gray-50 py-3 px-5">
-          <select
-            className={`bg-white border-blue-gray-50 border rounded-full px-4 py-2 text-white ${
-              user.EstadoPago === "Pendiente" ? "bg-pink-600 hover:bg-red-800" :
-              user.EstadoPago === "Pagado" ? "bg-green-700 hover:bg-green-800" :
-              user.EstadoPago === "Abonado" ? "bg-indigo-700 hover:bg-orange-800" : ""
-            }`}
-            value={user.EstadoPago}
-            onChange={(e) => confirmarCambioEstadoPago(user.IdVentaPedido, e.target.value)}
-            disabled={user.EstadoPago === "Pagado"} // Deshabilitar el selector si el estado es "Pagado"
-          >
-            {user.EstadoPago === "Abonado" ? null : <option value="Pendiente">Pendiente</option>}
-            <option value="Pagado">Pagado</option>
-            {user.EstadoPago === "Cancelado" ? null : <option value="Abonado">Abonado</option>}
-          </select>
-        </td>
-        <td className="border-b border-blue-gray-50 py-3 px-5">
-          {user.Estado ? (
-            <button
-              className="bg-green-600 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-full"
-              onClick={() => {confirmarEstado(user.IdVentaPedido)}}
-              disabled={user.EstadoPago === "Pendiente" || user.EstadoPago === "Cancelado"}
-            >
-              Activo
-            </button>
-          ) : (
-            <button
-              className="bg-pink-400 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-full"
-              onClick={() => {confirmarEstado(user.IdVentaPedido)}}
-              disabled={user.EstadoPago === "Cancelado"}
-            >
-              Inactivo
-            </button>
-          )}
-        </td>
-        <td className="border-b border-blue-gray-50 py-3 px-5">{user.ValorTotal}</td>
-        <td className="border-b border-blue-gray-50 py-0 px-1">
-          <button
-            className="text-xs font-semibold text-blue-gray-600 btnFunciones h-4 w-5 text-gray-500"
-            onClick={() => { visualizar(user) }}
-          >
-            <EyeIcon />
-          </button>
-        </td>
-      </tr>
-    ))}
-</tbody>
+              {currentVentas
+                .filter((user) => user.EstadoPago !== "Pendiente")
+                .map((user) => (
+                  <tr key={user.IdVentaPedido}>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">{user.NumeroVentaPedido}</td>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">
+                      {usuariosList && usuariosList.map((usuario) => (
+                        usuario.IdUsuario == user.IdUsuario && usuario.Nombre
+                      ))}
+                    </td>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">{user.MontoAdeudado}</td>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">
+                      <select
+                        className={`bg-white border-blue-gray-50 border rounded-full px-4 py-2 text-white 
+                        ${user.EstadoPago === "Pagado" ? "bg-[rgb(46,125,50)] hover:bg-green-800" :
+                            user.EstadoPago === "Abonado" ? "bg-[rgb(239,108,0)] hover:bg-orange-800" : ""}
+                          `}
+                        value={user.EstadoPago}
+                        onChange={(e) => confirmarCambioEstadoPago(user.IdVentaPedido, e.target.value)}
+                        disabled={user.EstadoPago === "Pagado"}
+                      >
+                        {user.EstadoPago === "Abonado" ? null : <option value="Pendiente">Pendiente</option>}
+                        <option value="Pagado">Pagado</option>
+                        {user.EstadoPago === "Cancelado" ? null : <option value="Abonado">Abonado</option>}
+                      </select>
+                    </td>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">
+                      {user.Estado ? (
+                        <button
+                          className="bg-green-600/80 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full"
+                          onClick={() => { confirmarEstado(user.IdVentaPedido) }}
+                          disabled={user.EstadoPago === "Pendiente" || user.EstadoPago === "Cancelado"}
+                        >
+                          Activo
+                        </button>
+                      ) : (
+                        <button
+                          className="bg-pink-400 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-full"
+                          onClick={() => { confirmarEstado(user.IdVentaPedido) }}
+                          disabled={user.EstadoPago === "Cancelado"}
+                        >
+                          Inactivo
+                        </button>
+                      )}
+                    </td>
+                    <td className="border-b border-blue-gray-50 py-3 px-5">{user.Total}</td>
+                    <td className="border-b border-blue-gray-50 py-0 px-1">
+                      <button
+                        className="text-xs font-semibold text-blue-gray-600 btnFunciones h-4 w-5 text-gray-500"
+                        onClick={() => { visualizar(user) }}
+                      >
+                        <EyeIcon />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
 
           </table>
           {/* Paginación */}

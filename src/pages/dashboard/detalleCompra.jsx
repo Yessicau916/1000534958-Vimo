@@ -23,6 +23,7 @@ export function DetalleCompra() {
   const [comprasTabla, setComprasTabla] = useState([]);
   const [productosList, setProductosList] = useState([]);
   const [comprasList, setComprasList] = useState([]);
+  const [comprasList2, setComprasList2] = useState([]);
   const [proveedoresList, setProveedoresList] = useState([]);
   const [isLocked, setIsLocked] = useState(false);
 
@@ -31,6 +32,33 @@ export function DetalleCompra() {
   const URLDetalleCompras = "http://localhost:8080/api/detallecompras";
   const URLProductos = "http://localhost:8080/api/productos";
   const URLProveedores = "http://localhost:8080/api/proveedores";
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [comprasResponse, productosResponse, proveedoresResponse] = await Promise.all([
+          Axios.get(URLCompras),
+          Axios.get(URLProductos),
+          Axios.get(URLProveedores)
+        ]);
+        setComprasList(comprasResponse.data.compras);
+        setProductosList(productosResponse.data.productos);
+        setProveedoresList(proveedoresResponse.data.proveedores);
+      } catch (error) {
+        showAlert("error", "Error al cargar los datos");
+        console.error("Error al cargar los datos:", error);
+      }
+    };
+    fetchData();
+    const getCompras = async () => {
+        try {
+            const resp = await Axios.get(URLCompras);
+            setComprasList2(resp.data.compras);
+        } catch (error) {
+            console.log("Error al obtener los datos: ", error);
+        }
+    }
+    getCompras()
+}, []);
 
 
   const handleAgregarVenta = () => {
@@ -42,29 +70,55 @@ export function DetalleCompra() {
       return;
     }
     const nuevoSubtotal = parseFloat(valorProductoUnitario) * parseFloat(CantidadComprada);
+  
+    let productoExistente = false;
+  
+    const nuevaCompraTabla = comprasTabla.map((compra) => {
+      if (compra.producto === producto) {
+        productoExistente = true;
+        return {
+          ...compra,
+          cantidad: parseFloat(compra.cantidad) + parseFloat(CantidadComprada),
+          valortotal: parseFloat(compra.valortotal) + nuevoSubtotal,
+          valorVenta: valorVenta
+        };
+      }
+      return compra;
+    });
+  
+    if (!productoExistente) {
+      const nuevaCompra = {
+        producto: producto,
+        cantidad: CantidadComprada,
+        valorxunidad: valorProductoUnitario,
+        valortotal: nuevoSubtotal,
+        valorVenta: valorVenta,
+      };
+      setComprasTabla([...comprasTabla, nuevaCompra]);
+    } else {
+      setComprasTabla(nuevaCompraTabla);
+    }
+  
     setValorTotal(prevTotal => prevTotal + nuevoSubtotal);
-    const nuevaCompra = {
-      producto: producto,
-      cantidad: CantidadComprada,
-      valorxunidad: valorProductoUnitario,
-      valortotal: nuevoSubtotal,
-      valorVenta: valorVenta,
-    };
-    setComprasTabla([...comprasTabla, nuevaCompra]);
     showAlert("success", "Compra agregada a la tabla.");
-    setValorTotal(valorTotal + nuevoSubtotal);
-    console.log(comprasTabla)
+  
+    setProducto("");
+    setValorProductoUnitario("");
+    setCantidadComprada("");
+    setValorVenta("");
   };
+  
+  
 
-  const handleEliminarProducto = (idProducto , i) => {
-    const productoAEliminar = comprasTabla.find((compra, index) => compra.producto === idProducto && index === i);
+  const handleEliminarProducto = (idProducto ) => {
+    const productoAEliminar = comprasTabla.find((compra) => compra.idproducto === idProducto );
     const subtotalAEliminar = productoAEliminar.valortotal;
     delServ(idProducto);
     setValorTotal(prevTotal => prevTotal - subtotalAEliminar);
   };
 
   // Funciones de utilidad
-  const showAlert = (icon = "success", title, timer = 1500) => {
+  const showAlert = (icon = "success", title, timer = 2500) => {
     Swal.fire({
       icon: icon,
       title: title,
@@ -87,7 +141,7 @@ export function DetalleCompra() {
       showAlert("error", "La tabla esta vacía");
       return;
     }
-    showAlert("sucess", "Registro Compra");
+    showAlert("success", "Señor administrador, recuerde ir a la tabla de productos a categorizar los colores y las tallas  ");
     Axios.post(URLCompras, {
       IdProveedor: proveedor,
       NumeroFactura: numeroFactura,
@@ -98,12 +152,12 @@ export function DetalleCompra() {
       ValorTotal: valorTotal,
 
     }).then(() => {
-      showAlert("sucess", "Ventas registrada ");
+      showAlert("success", "Señor administrador, recuerde ir a la tabla de productos a categorizar los colores y las tallas  ");
       setProducto("")
       setNumeroFactura("")
-      setFecha()
-      setValorProductoUnitario()
-      setValorVenta();
+      setFecha("")
+      setValorProductoUnitario(0)
+      setValorVenta(0);
       setValorTotal(0)
       setComprasTabla([]);
       setTimeout(() => {
@@ -122,12 +176,12 @@ export function DetalleCompra() {
       console.log(response.data)
       const numCompraNueva = response.data.numeroFactura;
       const id = numCompraNueva.find(cvn => cvn)?.IdCompra;
-      showAlert("sucess", "Detalle de la compra registrado");
+      showAlert("success", "Detalle de la compra registrado");
       comprasTabla.map(vt => (
         Axios.post(URLDetalleCompras, {
-          IdCompra: id,
+          IdDetalleCompra: id,
           IdProducto: vt.producto,
-          ValorCompra: vt.ValorCompra,
+          ValorCompra: vt.valorCompra,
           ValorVenta: vt.valorVenta,
           CantidadComprada: vt.cantidad
         }).catch((error) => {
@@ -138,26 +192,7 @@ export function DetalleCompra() {
     })
   }
   // Efectos
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [comprasResponse, productosResponse, proveedoresResponse] = await Promise.all([
-          Axios.get(URLCompras),
-          Axios.get(URLProductos),
-          Axios.get(URLProveedores)
-        ]);
-        setComprasList(comprasResponse.data.compras);
-        setProductosList(productosResponse.data.productos);
-        setProveedoresList(proveedoresResponse.data.proveedores);
-      } catch (error) {
-        showAlert("error", "Error al cargar los datos");
-        console.error("Error al cargar los datos:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
+ 
   // Obtener la fecha actual en formato yyyy-mm-dd
   const today = new Date().toISOString().split('T')[0];
 
@@ -295,8 +330,8 @@ export function DetalleCompra() {
                 </tr>
               </thead>
               <tbody>
-                {comprasTabla.map((compra, index) => (
-                  <tr key={index}>
+                {comprasTabla.map((compra) => (
+                  <tr key={compra.IdCompra}>
                     <td className="px-2 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {productosList.filter(p => p.IdProducto == compra.producto).map(p => p.NombreProducto)}
@@ -315,7 +350,7 @@ export function DetalleCompra() {
                       <div className="text-sm text-gray-900">${formatNumber(compra.valortotal)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                      <button onClick={() => handleEliminarProducto(compra.producto ,index)} className="text-red-600 hover:text-red-900 mr-2">
+                      <button onClick={() => handleEliminarProducto(compra.producto )} className="text-red-600 hover:text-red-900 mr-2">
                         <TrashIcon className="h-5 w-5" />
                       </button>
                     </td>
